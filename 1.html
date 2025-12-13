@@ -1,11 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Hello World1</title>
-</head>
-<body>
-    <h1>1</h1>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>你的极其无聊的详细信息档案 - 隐私泄露演示</title>
+    <link rel="stylesheet" href="1.css" />
+  </head>
+  <body>
+    <canvas id="behavior-canvas"></canvas>
+
+    <div class="container">
+      <header>
+        <h1>⚠️ 你的数字裸奔档案</h1>
+        <div class="warning-box">
+          <strong>警告：</strong>
+          本页面正在演示现代广告追踪技术（Ad-Tech）如何根据你的硬件指纹和行为模式来识别你，哪怕你清除了
+          Cookie。 <br />所有数据仅在本地处理，不会上传，但请意识到：<strong
+            >真正的追踪者早已拿到了这些数据。</strong
+          >
+        </div>
+      </header>
+
+      <div class="grid" id="dashboard"></div>
+
+      <footer>
+        <p>生成时间: <span id="timestamp"></span> | 隐私教育用途</p>
+      </footer>
+    </div>
+
+    <script src="1.js"></script>
+  </body>
 </html>
