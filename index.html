@@ -6,24 +6,10 @@
     <title>正在跳转...</title>
   </head>
   <script>
-    var _hmt = _hmt || [];
-    (function () {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?cb7b7a45704663de5af620831782019d";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-
     window.onload = function () {
-      _hmt.push(['_trackPageview']); 
-      console.log("页面加载完成，准备延迟跳转...");
-      setTimeout(function () {
-        console.log("延迟结束，开始跳转到 1.html...");
-        window.location.replace("1.html");
-      }, 500);
+      window.location.replace("1.html");
     };
   </script>
-
   <body>
     <p>正在跳转，请稍候...</p>
     <noscript>
