@@ -4,28 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>正在跳转...</title>
-    <script>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?cb7b7a45704663de5af620831782019d";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-
-      // 页面加载完毕后，手动触发统计并设置回调
-      window.onload = function () {
-        // _hmt.push 是百度统计的通用命令接口
-        // ['_trackPageview'] 是发送页面浏览数据
-        // 第二个参数是一个回调函数，会在数据发送成功后执行
-        _hmt.push(['_trackPageview', window.location.pathname, function() {
-          console.log("百度统计数据已发送，开始跳转...");
-          // 在这个回调里执行跳转，确保万无一失
-          window.location.replace("1.html");
-        }]);
-      };
-    </script>
   </head>
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?cb7b7a45704663de5af620831782019d";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+
+    // 页面加载完毕后执行
+    window.onload = function () {
+      // 触发一次页面浏览统计（可选，因为百度统计代码通常会自动统计）
+      // 如果这个跳转页是独立入口，手动触发一下更保险
+      _hmt.push(['_trackPageview']); 
+
+      console.log("页面加载完成，百度统计已触发，准备延迟跳转...");
+
+      // 延迟 500 毫秒后执行跳转
+      // 这个时间通常足够让异步请求发出
+      setTimeout(function () {
+        console.log("延迟结束，开始跳转到 1.html...");
+        // 使用 replace 可以让用户无法通过“后退”按钮返回这个跳转页
+        window.location.replace("1.html");
+      }, 500); // 500毫秒是比较稳妥的值
+    };
+  </script>
+
   <body>
     <p>正在跳转，请稍候...</p>
     <noscript>
