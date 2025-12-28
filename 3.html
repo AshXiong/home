@@ -77,7 +77,7 @@
         min-height: 3rem; /* 固定高度防止文字换行时抖动 */
         display: flex;
         align-items: center;
-        transition: color 0.3s ease;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* 让文字颜色和内容切换更柔和 */
       }
 
       .progress-wrapper {
@@ -91,11 +91,33 @@
       .progress-container {
         position: relative;
         width: 100%;
-        height: 64px; /* 进度条高度固定更美观 */
-        background-color: var(--track-bg);
+        height: 64px;
         border-radius: 20px;
         overflow: visible;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+
+        /* 从绿到黄再到红的平滑过渡 */
+        background: linear-gradient(
+          to right,
+          rgba(46, 204, 113, 0.15) 0%,
+          /* 纯绿开始 */ rgba(46, 204, 113, 0.15) 37.5%,
+          /* 45分钟处：依然是纯绿 */ rgba(241, 196, 15, 0.15) 60%,
+          /* 开始向黄色过渡 (约72分钟) */ rgba(231, 76, 60, 0.15) 100%
+            /* 最后到达危险红 */
+        );
+      }
+
+      /* 在 45 分钟（37.5%）处加一个微弱的呼吸灯提示，既不挡数字，又起引导作用 */
+      .progress-container::before {
+        content: "";
+        position: absolute;
+        left: 37.5%;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: rgba(255, 255, 255, 1); /* 极细白线，像刻度一样 */
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        z-index: 2;
       }
 
       .progress-mask {
@@ -249,6 +271,21 @@
       let isDragging = false;
       const MAX_MINUTES = 120;
 
+      let isPreviewing = false;
+      let previewTimer = null;
+
+      function getStatusConfig(mins) {
+        if (mins < 30) {
+          return { text: "充满活力", color: "#2ecc71" }; // 翠绿色
+        } else if (mins < 45) {
+          return { text: "专注中", color: "#a2dd58" }; // 浅绿色
+        } else if (mins < 60) {
+          return { text: "建议走动", color: "#f39c12" }; // 橙黄色
+        } else {
+          return { text: "严重久坐", color: "#e74c3c" }; // 红色
+        }
+      }
+
       // 颜色插值算法
       function getScientificColor(mins) {
         if (mins <= 45) return "#2ecc71"; // 绿色
@@ -282,6 +319,9 @@
         if (document.body.classList.contains("danger-mode")) {
           resetState();
         }
+
+        isPreviewing = true; // 开启预览模式
+        if (previewTimer) clearTimeout(previewTimer); // 如果正在滑动，清除之前的倒计时
 
         const hintElement = document.getElementById("hint");
         if (hintElement) hintElement.innerText = "";
@@ -339,6 +379,9 @@
 
         fill.style.boxShadow = `0 0 20px ${glowColor}`;
 
+        //如果正在预览，就不更新 status 文字
+        if (isPreviewing) return;
+
         // 到达目标后的逻辑
         if (elapsedSeconds >= targetSeconds) {
           // 触发警报，但不再 clearInterval
@@ -350,14 +393,9 @@
           )}`;
           status.style.color = "var(--danger)";
         } else {
-          // 未到达目标时的状态显示
-          if (elapsedMins < 60) {
-            status.innerText = "状态：良好";
-            status.style.color = "var(--text-sub)";
-          } else {
-            status.innerText = "状态：久坐警告";
-            status.style.color = currentColor;
-          }
+          const config = getStatusConfig(elapsedMins);
+          status.innerText = config.text;
+          status.style.color = config.color;
         }
       }
 
@@ -399,7 +437,11 @@
       const endEvent = () => {
         if (isDragging) {
           isDragging = false;
-          startTiming();
+          startTiming(); 
+          // 松手后，预览文字保留 3 秒
+          previewTimer = setTimeout(() => {
+            isPreviewing = false;
+          }, 3000); // 3000毫秒 = 3秒，你可以根据需要调整
         }
       };
 
