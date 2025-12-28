@@ -138,9 +138,9 @@
           box-shadow: 0 0 10px var(--current-glow-color);
         }
         100% {
-          filter: brightness(1.2); 
+          filter: brightness(1.2);
           box-shadow: 0 0 15px 2px var(--current-glow-color),
-          inset 0 0 8px rgba(255, 255, 255, 0.3); 
+            inset 0 0 8px rgba(255, 255, 255, 0.3);
         }
       }
 
@@ -478,21 +478,77 @@
       window.addEventListener("mousemove", moveEvent);
       window.addEventListener("mouseup", endEvent);
 
+      // 新增休息时间配置（秒），建议 120 秒（2分钟）
+      const REST_DURATION = 120;
+      let isResting = false;
+      let restTimer = null;
+
+      // 修改后的点击处理逻辑
       document.body.addEventListener("click", (e) => {
-        // 只有当正处于报警模式（danger-mode），且点击的是背景（非 app 容器内部）时触发
-        if (document.body.classList.contains("danger-mode")) {
+        // 只有在报警模式下点击背景才触发
+        if (document.body.classList.contains("danger-mode") && !isResting) {
           if (!document.getElementById("app").contains(e.target)) {
-            resetState();
-            startTime = Date.now();
-            countdown.innerText = "00:00";
-            fill.style.width = "0%";
-            status.innerText = "已重新开始计时...";
             document.getElementById("hint").innerText = "";
-            if (timer) clearInterval(timer);
-            timer = setInterval(update, 500);
+            startRestPhase();
           }
         }
       });
+
+      function startRestPhase() {
+        isResting = true;
+        resetState(); // 停止报警声音和动画
+        if (timer) clearInterval(timer);
+
+        let restRemaining = REST_DURATION;
+        status.innerText = "太棒了！请起身活动 (建议深蹲或远眺)";
+        status.style.color = "#2ecc71";
+        document.body.style.backgroundColor = "#e8f8f5"; // 背景变淡绿
+
+        restTimer = setInterval(() => {
+          restRemaining--;
+          countdown.innerText = formatTime(restRemaining);
+
+          // 进度条反向缩减效果
+          const restProgress = (restRemaining / REST_DURATION) * 100;
+          fill.style.width = restProgress + "%";
+          fill.style.background = "#2ecc71";
+
+          if (restRemaining <= 0) {
+            endRestPhase();
+          }
+        }, 1000);
+      }
+
+      function endRestPhase() {
+        clearInterval(restTimer);
+        isResting = false;
+        document.body.style.backgroundColor = "var(--bg-color)";
+
+        // 播放逻辑
+        const playPromise = alarm.play();
+
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // 播放成功，1秒后停止
+              setTimeout(() => {
+                alarm.pause();
+                alarm.currentTime = 0;
+              }, 2000);
+            })
+            .catch((error) => {
+              console.error("音频播放被拦截:", error);
+              // 如果自动播放失败，可以考虑改用弹窗提醒，用户点击弹窗后再响铃
+            });
+        }
+
+        // 自动重新开始下一轮计时
+        startTime = Date.now();
+        countdown.innerText = "00:00";
+        fill.style.width = "0%";
+        status.innerText = "新一轮计时已自动开始...";
+        timer = setInterval(update, 500); // 恢复主更新循环
+      }
 
       async function requestLandscape() {
         try {
