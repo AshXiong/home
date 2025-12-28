@@ -107,6 +107,11 @@
         );
       }
 
+      .progress-container.resting {
+        background: var(--track-bg) !important; /* 切换为浅灰色背景或透明 */
+        box-shadow: none; /* 可选：去掉阴影让界面更清爽 */
+      }
+
       /* 在 45 分钟（37.5%）处加一个微弱的呼吸灯提示，既不挡数字，又起引导作用 */
       .progress-container::before {
         content: "";
@@ -118,6 +123,10 @@
         background: rgba(255, 255, 255, 1); /* 极细白线，像刻度一样 */
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         z-index: 2;
+      }
+
+      .hide-line::before {
+        display: none !important;
       }
 
       .progress-mask {
@@ -498,6 +507,13 @@
         resetState(); // 停止报警声音和动画
         if (timer) clearInterval(timer);
 
+        marker.style.display = "none";
+        document.querySelector(".progress-container").classList.add("resting");
+        document
+          .querySelector(".progress-container")
+          .classList.add("hide-line");
+        touchZone.style.pointerEvents = "none"; // 彻底禁用点击和滑动
+
         let restRemaining = REST_DURATION;
         status.innerText = "太棒了！请起身活动 (建议深蹲或远眺)";
         status.style.color = "#2ecc71";
@@ -522,6 +538,15 @@
         clearInterval(restTimer);
         isResting = false;
         document.body.style.backgroundColor = "var(--bg-color)";
+
+        marker.style.display = "block";
+        document
+          .querySelector(".progress-container")
+          .classList.remove("resting");
+        document
+          .querySelector(".progress-container")
+          .classList.remove("hide-line");
+        touchZone.style.pointerEvents = "auto"; // 恢复交互
 
         // 播放逻辑
         const playPromise = alarm.play();
