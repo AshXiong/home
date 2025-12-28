@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>极简久坐提醒 - 压力可视化版</title>
+    <title>久坐提醒</title>
     <style>
       :root {
         --bg-color: #f0f3f7;
@@ -223,7 +223,7 @@
         </div>
       </div>
 
-      <div class="hint">全长 120 分钟 • 压力感应变色</div>
+      <div class="hint" id="hint"></div>
     </div>
 
     <audio id="alarm" loop>
@@ -271,7 +271,13 @@
         return `rgb(${r}, ${g}, ${b})`;
       }
 
+      // 在脚本开头定义一个变量记录上次震动的分钟数
+      let lastVibratedMin = -1;
+
       function handlePosition(clientX) {
+        const hintElement = document.getElementById("hint");
+        if (hintElement) hintElement.innerText = "";
+
         const rect = touchZone
           .querySelector(".progress-container")
           .getBoundingClientRect();
@@ -286,9 +292,13 @@
         marker.style.display = "block";
 
         status.innerText = `将在坐满 ${mins} 分钟时提醒`;
-        status.style.color = getScientificColor(mins); // 设定时文字也变色预览
+        status.style.color = getScientificColor(mins);
 
-        if (navigator.vibrate) navigator.vibrate(5);
+        // 只有当当前的分钟数与上一次震动时的分钟数不同时，才触发震动
+        if (navigator.vibrate && mins !== lastVibratedMin) {
+          navigator.vibrate(5);
+          lastVibratedMin = mins; // 更新记录
+        }
       }
 
       function startTiming() {
@@ -328,7 +338,7 @@
           if (!document.body.classList.contains("danger-mode")) {
             triggerAlarm();
           }
-          status.innerText = `超时提醒：已超过设定时间 ${formatTime(
+          status.innerText = `到点啦！请起身活动身体 | 已超过设定时间 ${formatTime(
             elapsedSeconds - targetSeconds
           )}`;
           status.style.color = "var(--danger)";
@@ -355,8 +365,9 @@
       function triggerAlarm() {
         alarm.play().catch(() => {});
         document.body.classList.add("danger-mode");
-        status.innerText = "到点啦！请立即活动身体";
-        status.style.color = "var(--danger)";
+        const hint = document.getElementById("hint");
+        hint.innerText = "点击背景空白处重置";
+        hint.style.color = "var(--text-sub)";
       }
 
       function resetState() {
@@ -389,10 +400,7 @@
       window.addEventListener("mouseup", endEvent);
 
       document.body.addEventListener("click", (e) => {
-        if (
-          !document.getElementById("app").contains(e.target) &&
-          !alarm.paused
-        ) {
+        if (!document.getElementById("app").contains(e.target)) {
           resetState();
           clearInterval(timer);
           startTime = 0;
@@ -400,10 +408,15 @@
           countdown.innerText = "00:00";
           fill.style.width = "0%";
           marker.style.display = "none";
-          status.innerText = "左右滑动设定时间";
+
+          // 重置状态文字
+          status.innerText = "滑动时间轴设定提醒";
           status.style.color = "var(--text-sub)";
+
+          document.getElementById("hint").innerText = "";
         }
       });
+
       async function requestLandscape() {
         try {
           // 1. 现代浏览器需要先进入全屏模式才能锁定方向
